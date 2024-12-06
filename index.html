@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block Blast Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Block Blast Game</h1>
+    <p class="game-info">Use arrow keys to move the platform and hit the blocks!</p>
+    <canvas id="gameCanvas" width="480" height="320"></canvas>
+    
+    <script>
+        // JavaScript код игры
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let ballRadius = 10;
+        let x = canvas.width / 2;
+        let y = canvas.height - 30;
+        let dx = 2;
+        let dy = -2;
+
+        let paddleHeight = 10;
+        let paddleWidth = 75;
+        let paddleX = (canvas.width - paddleWidth) / 2;
+
+        let rightPressed = false;
+        let leftPressed = false;
+
+        const brickRowCount = 3;
+        const brickColumnCount = 5;
+        const brickWidth = 75;
+        const brickHeight = 20;
+        const brickPadding = 10;
+        const brickOffsetTop = 30;
+        const brickOffsetLeft = 30;
+
+        let bricks = [];
+        for (let c = 0; c < brickColumnCount; c++) {
+            bricks[c] = [];
+            for (let r = 0; r < brickRowCount; r++) {
+                bricks[c][r] = { x: 0, y: 0, status: 1 };
+            }
+        }
+
+        let score = 0;
+        let lives = 3;
+
+        // Управление платформой
+        document.addEventListener("keydown", keyDownHandler, false);
+        document.addEventListener("keyup", keyUpHandler, false);
+
+        function keyDownHandler(e) {
+            if (e.key == "Right" || e.key == "ArrowRight") {
+                rightPressed = true;
+            } else if (e.key == "Left" || e.key == "ArrowLeft") {
+                leftPressed = true;
+            }
+        }
+
+        function keyUpHandler(e) {
+            if (e.key == "Right" || e.key == "ArrowRight") {
+                rightPressed = false;
+            } else if (e.key == "Left" || e.key == "ArrowLeft") {
+                leftPressed = false;
+            }
+        }
+
+        // Рисуем мяч
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = "#0095DD";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        // Рисуем платформу
+        function drawPaddle() {
+            ctx.beginPath();
+            ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+            ctx.fillStyle = "#0095DD";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        // Рисуем блоки
+        function drawBricks() {
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    if (bricks[c][r].status == 1) {
+                        let brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
+                        let brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
+                        bricks[c][r].x = brickX;
+                        bricks[c][r].y = brickY;
+                        ctx.beginPath();
+                        ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                        ctx.fillStyle = "#0095DD";
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                }
+            }
+        }
+
+        // Столкновение с блоками
+        function collisionDetection() {
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    let b = bricks[c][r];
+                    if (b.status == 1) {
+                        if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
+                            dy = -dy;
+                            b.status = 0;
+                            score++;
+                            if (score == brickRowCount * brickColumnCount) {
+                                alert("You Win!");
+                                document.location.reload();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Рисуем счет
+        function drawScore() {
+            ctx.font = "16px Arial";
+            ctx.fillStyle = "#0095DD";
+            ctx.fillText("Score: " + score, 8, 20);
+        }
+
+        // Рисуем жизни
+        function drawLives() {
+            ctx.font = "16px Arial";
+            ctx.fillStyle = "#0095DD";
+            ctx.fillText("Lives: " + lives, canvas.width - 65, 20);
+        }
+
+        // Основная игровая функция
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBricks();
+            drawBall();
+            drawPaddle();
+            drawScore();
+            drawLives();
+            collisionDetection();
+
+            if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
+                dx = -dx;
+            }
+            if (y + dy < ballRadius) {
+                dy = -dy;
+            } else if (y + dy > canvas.height - ballRadius) {
+                if (x > paddleX && x < paddleX + paddleWidth) {
+                    dy = -dy;
+                } else {
+                    lives--;
+                    if (lives == 0) {
+                        alert("GAME OVER");
+                        document.location.reload();
+                    } else {
+                        x = canvas.width / 2;
+                        y = canvas.height - 30;
+                        dx = 2;
+                        dy = -2;
+                        paddleX = (canvas.width - paddleWidth) / 2;
+                    }
+                }
+            }
+
+            if (rightPressed && paddleX < canvas.width - paddleWidth) {
+                paddleX += 7;
+            } else if (leftPressed && paddleX > 0) {
+                paddleX -= 7;
+            }
+
+            x += dx;
+            y += dy;
+            requestAnimationFrame(draw);
+        }
+
+        draw();
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block Blast Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1 id="welcome-message">Ассаламу алейкум, Дамир! Эта игра Искака</h1>
+    <p class="game-info">Use arrow keys to move the platform and hit the blocks!</p>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <audio id="background-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Музыка
+        const music = document.getElementById('background-music');
+        music.play();
+
+        // Приветственное сообщение
+        setTimeout(() => {
+            document.getElementById('welcome-message').style.display = "none";
+        }, 3000); // Скрыть сообщение через 3 секунды
+
+        let ballRadius = 12;
+        let x = canvas.width / 2;
+        let y = canvas.height - 30;
+        let dx = 3;
+        let dy = -3;
+
+        let paddleHeight = 15;
+        let paddleWidth = 100;
+        let paddleX = (canvas.width - paddleWidth) / 2;
+
+        let rightPressed = false;
+        let leftPressed = false;
+
+        // Блоки
+        const brickRowCount = 4;
+        const brickColumnCount = 6;
+        const brickWidth = 120;
+        const brickHeight = 30;
+        const brickPadding = 15;
+        const brickOffsetTop = 40;
+        const brickOffsetLeft = 40;
+
+        let bricks = [];
+        for (let c = 0; c < brickColumnCount; c++) {
+            bricks[c] = [];
+            for (let r = 0; r < brickRowCount; r++) {
+                bricks[c][r] = { x: 0, y: 0, status: 1 };
+            }
+        }
+
+        let score = 0;
+        let lives = 3;
+
+        // Управление
+        document.addEventListener("keydown", keyDownHandler, false);
+        document.addEventListener("keyup", keyUpHandler, false);
+
+        function keyDownHandler(e) {
+            if (e.key == "Right" || e.key == "ArrowRight") {
+                rightPressed = true;
+            } else if (e.key == "Left" || e.key == "ArrowLeft") {
+                leftPressed = true;
+            }
+        }
+
+        function keyUpHandler(e) {
+            if (e.key == "Right" || e.key == "ArrowRight") {
+                rightPressed = false;
+            } else if (e.key == "Left" || e.key == "ArrowLeft") {
+                leftPressed = false;
+            }
+        }
+
+        // Рисуем мяч
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = getRandomColor(); // Используем случайный цвет
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        // Рисуем платформу
+        function drawPaddle() {
+            ctx.beginPath();
+            ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+            ctx.fillStyle = getRandomColor(); // Случайный цвет
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        // Рисуем блоки
+        function drawBricks() {
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    if (bricks[c][r].status == 1) {
+                        let brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
+                        let brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
+                        bricks[c][r].x = brickX;
+                        bricks[c][r].y = brickY;
+                        ctx.beginPath();
+                        ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                        ctx.fillStyle = getRandomColor(); // Случайный цвет
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                }
+            }
+        }
+
+        // Столкновение с блоками
+        function collisionDetection() {
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    let b = bricks[c][r];
+                    if (b.status == 1) {
+                        if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
+                            dy = -dy;
+                            b.status = 0;
+                            score++;
+                            if (score == brickRowCount * brickColumnCount) {
+                                alert("You Win!");
+                                document.location.reload();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Рисуем счет
+        function drawScore() {
+            ctx.font = "18px Times New Roman";
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText("Score: " + score, 8, 20);
+        }
+
+        // Рисуем жизни
+        function drawLives() {
+            ctx.font = "18px Times New Roman";
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText("Lives: " + lives, canvas.width - 75, 20);
+        }
+
+        // Функция для получения случайного цвета
+        function getRandomColor() {
+            const colors = ['#FF5733', '#DAF7A6', '#FFC300', '#900C3F', '#581845', '#FF6347', '#0000FF'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        // Главная функция игры
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBricks();
+            drawBall();
+            drawPaddle();
+            drawScore();
+            drawLives();
+            collisionDetection();
+
+            // Столкновение с границами
+            if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
+                dx = -dx;
+            }
+            if (y + dy < ballRadius) {
+                dy = -dy;
+            } else if (y + dy > canvas.height - ballRadius) {
+                if (x > paddleX && x < paddleX + paddleWidth) {
+                    dy = -dy;
+                } else {
+                    lives--;
+                    if (lives == 0) {
+                        alert("GAME OVER");
+                        document.location.reload();
+                    } else {
+                        x = canvas.width / 2;
+                        y = canvas.height - 30;
+                        dx = 3;
+                        dy = -3;
+                        paddleX = (canvas.width - paddleWidth) / 2;
+                    }
+                }
+            }
+
+            // Управление платформой
+            if (rightPressed && paddleX < canvas.width - paddleWidth) {
+                paddleX += 7;
+            } else if (leftPressed && paddleX > 0) {
+                paddleX -= 7;
+            }
+
+            x += dx;
+            y += dy;
+            requestAnimationFrame(draw);
+        }
+
+        draw();
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block Blast Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1 id="welcome-message">Ассаламу алейкум, Дамир! Эта игра Искака</h1>
+    <p class="game-info">Use arrow keys to move the platform and hit the blocks!</p>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <audio id="background-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Музыка
+        const music = document.getElementById('background-music');
+        music.play();
+
+        // Приветственное сообщение
+        setTimeout(() => {
+            document.getElementById('welcome-message').style.display = "none";
+        }, 3000); // Скрыть сообщение через 3 секунды
+
+        let ballRadius = 12;
+        let x = canvas.width / 2;
+        let y = canvas.height - 30;
+        let dx = 3;
+        let dy = -3;
+
+        let paddleHeight = 15;
+        let paddleWidth = 100;
+        let paddleX = (canvas.width - paddleWidth) / 2;
+
+        let rightPressed = false;
+        let leftPressed = false;
+
+        // Для управления касанием
+        let touchStartX = 0;
+
+        // Наклон устройства
+        let deviceTilt = 0;
+
+        // Блоки
+        const brickRowCount = 4;
+        const brickColumnCount = 6;
+        const brickWidth = 120;
+        const brickHeight = 30;
+        const brickPadding = 15;
+        const brickOffsetTop = 40;
+        const brickOffsetLeft = 40;
+
+        let bricks = [];
+        for (let c = 0; c < brickColumnCount; c++) {
+            bricks[c] = [];
+            for (let r = 0; r < brickRowCount; r++) {
+                bricks[c][r] = { x: 0, y: 0, status: 1 };
+            }
+        }
+
+        let score = 0;
+        let lives = 3;
+
+        // Управление клавишами
+        document.addEventListener("keydown", keyDownHandler, false);
+        document.addEventListener("keyup", keyUpHandler, false);
+
+        // Управление касанием
+        canvas.addEventListener("touchstart", touchStartHandler, false);
+        canvas.addEventListener("touchmove", touchMoveHandler, false);
+
+        // Управление наклоном устройства
+        window.addEventListener("deviceorientation", handleOrientation, false);
+
+        function keyDownHandler(e) {
+            if (e.key == "Right" || e.key == "ArrowRight") {
+                rightPressed = true;
+            } else if (e.key == "Left" || e.key == "ArrowLeft") {
+                leftPressed = true;
+            }
+        }
+
+        function keyUpHandler(e) {
+            if (e.key == "Right" || e.key == "ArrowRight") {
+                rightPressed = false;
+            } else if (e.key == "Left" || e.key == "ArrowLeft") {
+                leftPressed = false;
+            }
+        }
+
+        // Управление касанием
+        function touchStartHandler(e) {
+            touchStartX = e.touches[0].clientX;
+        }
+
+        function touchMoveHandler(e) {
+            e.preventDefault();
+            let touchMoveX = e.touches[0].clientX;
+            let touchDiff = touchStartX - touchMoveX;
+            if (touchDiff > 0) {
+                paddleX -= 7; // движение влево
+            } else {
+                paddleX += 7; // движение вправо
+            }
+            touchStartX = touchMoveX; // обновляем стартовую позицию касания
+        }
+
+        // Наклон устройства
+        function handleOrientation(event) {
+            deviceTilt = event.gamma; // Получаем наклон по оси X (левая/правая)
+            if (deviceTilt > 15) {
+                paddleX += 7; // наклон вправо
+            } else if (deviceTilt < -15) {
+                paddleX -= 7; // наклон влево
+            }
+        }
+
+        // Рисуем мяч
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = getRandomColor(); // Используем случайный цвет
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        // Рисуем платформу
+        function drawPaddle() {
+            ctx.beginPath();
+            ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+            ctx.fillStyle = getRandomColor(); // Случайный цвет
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        // Рисуем блоки
+        function drawBricks() {
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    if (bricks[c][r].status == 1) {
+                        let brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
+                        let brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
+                        bricks[c][r].x = brickX;
+                        bricks[c][r].y = brickY;
+                        ctx.beginPath();
+                        ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                        ctx.fillStyle = getRandomColor(); // Случайный цвет
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                }
+            }
+        }
+
+        // Столкновение с блоками
+        function collisionDetection() {
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    let b = bricks[c][r];
+                    if (b.status == 1) {
+                        if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
+                            dy = -dy;
+                            b.status = 0;
+                            score++;
+                            if (score == brickRowCount * brickColumnCount) {
+                                alert("You Win!");
+                                document.location.reload();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Рисуем счет
+        function drawScore() {
+            ctx.font = "18px Times New Roman";
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText("Score: " + score, 8, 20);
+        }
+
+        // Рисуем жизни
+        function drawLives() {
+            ctx.font = "18px Times New Roman";
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText("Lives: " + lives, canvas.width - 75, 20);
+        }
+
+        // Функция для получения случайного цвета
+        function getRandomColor() {
+            const colors = ['#FF5733', '#DAF7A6', '#FFC300', '#900C3F', '#581845', '#FF6347', '#0000FF'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        // Главная функция игры
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBricks();
+            drawBall();
+            drawPaddle();
+            drawScore();
+            drawLives();
+            collisionDetection();
+
+            // Столкновение с границами
+            if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
+                dx = -dx;
+            }
+            if (y + dy < ballRadius) {
+                dy = -dy;
+            } else if (y + dy > canvas.height - ballRadius) {
+                if (x > paddleX && x < paddleX + paddleWidth) {
+                    dy = -dy;
+                } else {
+                    lives--;
+                    if (lives == 0) {
+                        alert("GAME OVER");
+                        document.location.reload();
+                    } else {
+                        x = canvas.width / 2;
+                        y = canvas.height - 30;
+                        dx = 3;
+                        dy = -3;
+                        paddleX = (canvas.width - paddleWidth) / 2;
+                    }
+                }
+            }
+
+            x += dx;
+            y += dy;
+            requestAnimationFrame(draw);
+        }
+
+        draw();
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Center</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Welcome to the Game Center</h1>
+    <p>Select a game:</p>
+    <div id="menu">
+        <button onclick="startGame('blockBlast')">Block Blast</button>
+        <button onclick="startGame('pong')">Pong</button>
+        <button onclick="startGame('puzzle')">Puzzle</button>
+        <button onclick="startGame('reaction')">Reaction Game</button>
+    </div>
+
+    <!-- Игры -->
+    <div id="blockBlast" class="game" style="display:none;">
+        <h2>Block Blast</h2>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <button onclick="backToMenu()">Back to Menu</button>
+    </div>
+
+    <div id="pong" class="game" style="display:none;">
+        <h2>Pong</h2>
+        <canvas id="pongCanvas" width="800" height="600"></canvas>
+        <button onclick="backToMenu()">Back to Menu</button>
+    </div>
+
+    <div id="puzzle" class="game" style="display:none;">
+        <h2>Puzzle Game</h2>
+        <p>This is a puzzle game!</p>
+        <button onclick="backToMenu()">Back to Menu</button>
+    </div>
+
+    <div id="reaction" class="game" style="display:none;">
+        <h2>Reaction Game</h2>
+        <p>Test your reaction speed!</p>
+        <button onclick="backToMenu()">Back to Menu</button>
+    </div>
+
+    <script>
+        function startGame(gameId) {
+            // Скрываем все игры
+            const games = document.querySelectorAll('.game');
+            games.forEach(game => {
+                game.style.display = 'none';
+            });
+
+            // Показываем выбранную игру
+            document.getElementById(gameId).style.display = 'block';
+        }
+
+        function backToMenu() {
+            const games = document.querySelectorAll('.game');
+            games.forEach(game => {
+                game.style.display = 'none';
+            });
+            document.getElementById('menu').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
+<script>
+    const pongCanvas = document.getElementById('pongCanvas');
+    const pongCtx = pongCanvas.getContext('2d');
+
+    let ballRadius = 10;
+    let x = pongCanvas.width / 2;
+    let y = pongCanvas.height - 30;
+    let dx = 2;
+    let dy = -2;
+
+    let paddleHeight = 10;
+    let paddleWidth = 75;
+    let paddleX = (pongCanvas.width - paddleWidth) / 2;
+
+    let rightPressed = false;
+    let leftPressed = false;
+
+    document.addEventListener("keydown", keyDownHandler, false);
+    document.addEventListener("keyup", keyUpHandler, false);
+
+    function keyDownHandler(e) {
+        if (e.key == "Right" || e.key == "ArrowRight") {
+            rightPressed = true;
+        } else if (e.key == "Left" || e.key == "ArrowLeft") {
+            leftPressed = true;
+        }
+    }
+
+    function keyUpHandler(e) {
+        if (e.key == "Right" || e.key == "ArrowRight") {
+            rightPressed = false;
+        } else if (e.key == "Left" || e.key == "ArrowLeft") {
+            leftPressed = false;
+        }
+    }
+
+    function drawBall() {
+        pongCtx.beginPath();
+        pongCtx.arc(x, y, ballRadius, 0, Math.PI * 2);
+        pongCtx.fillStyle = "#0095DD";
+        pongCtx.fill();
+        pongCtx.closePath();
+    }
+
+    function drawPaddle() {
+        pongCtx.beginPath();
+        pongCtx.rect(paddleX, pongCanvas.height - paddleHeight, paddleWidth, paddleHeight);
+        pongCtx.fillStyle = "#0095DD";
+        pongCtx.fill();
+        pongCtx.closePath();
+    }
+
+    function draw() {
+        pongCtx.clearRect(0, 0, pongCanvas.width, pongCanvas.height);
+        drawBall();
+        drawPaddle();
+
+        if (x + dx > pongCanvas.width - ballRadius || x + dx < ballRadius) {
+            dx = -dx;
+        }
+        if (y + dy < ballRadius) {
+            dy = -dy;
+        } else if (y + dy > pongCanvas.height - ballRadius) {
+            if (x > paddleX && x < paddleX + paddleWidth) {
+                dy = -dy;
+            } else {
+                alert("GAME OVER");
+                document.location.reload();
+            }
+        }
+
+        if (rightPressed && paddleX < pongCanvas.width - paddleWidth) {
+            paddleX += 7;
+        } else if (leftPressed && paddleX > 0) {
+            paddleX -= 7;
+        }
+
+        x += dx;
+        y += dy;
+        requestAnimationFrame(draw);
+    }
+
+    draw();
+</script>
+<script>
+    // Логика для Puzzle Game может быть простой:
+    // Например, пользователю нужно собрать картинку или решать логические задачи.
+    alert("Puzzle game will be available soon!");
+</script>
+<script>
+    function reactionGame() {
+        alert("Get ready for the reaction test!");
+
+        let startTime = Date.now();
+        setTimeout(() => {
+            let reactionTime = Date.now() - startTime;
+            alert("Your reaction time is: " + reactionTime + " ms");
+        }, Math.random() * 5000); // Появление кнопки через случайное время
+    }
+
+    reactionGame();
+</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Center</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Welcome to the Game Center</h1>
+    <p>Select a game:</p>
+    <div id="menu">
+        <button onclick="startGame('blockBlast')">Block Blast</button>
+        <button onclick="startGame('pong')">Pong</button>
+        <button onclick="startGame('puzzle')">Puzzle</button>
+        <button onclick="startGame('reaction')">Reaction Game</button>
+    </div>
+
+    <!-- Игры -->
+    <div id="blockBlast" class="game" style="display:none;">
+        <h2>Block Blast</h2>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="levelDisplay">Level: 1</div>
+        <div id="scoreDisplay">Score: 0</div>
+        <button onclick="backToMenu()">Back to Menu</button>
+    </div>
+
+    <div id="pong" class="game" style="display:none;">
+        <h2>Pong</h2>
+        <canvas id="pongCanvas" width="800" height="600"></canvas>
+        <div id="levelDisplay">Level: 1</div>
+        <div id="scoreDisplay">Score: 0</div>
+        <button onclick="backToMenu()">Back to Menu</button>
+    </div>
+
+    <div id="puzzle" class="game" style="display:none;">
+        <h2>Puzzle Game</h2>
+        <p>This is a puzzle game!</p>
+        <button onclick="backToMenu()">Back to Menu</button>
+    </div>
+
+    <div id="reaction" class="game" style="display:none;">
+        <h2>Reaction Game</h2>
+        <p>Test your reaction speed!</p>
+        <button onclick="backToMenu()">Back to Menu</button>
+    </div>
+
+    <script>
+        let score = 0;
+        let level = 1;
+        let achievement = 'Bronze'; // Достижение по умолчанию
+
+        function startGame(gameId) {
+            // Скрываем все игры
+            const games = document.querySelectorAll('.game');
+            games.forEach(game => {
+                game.style.display = 'none';
+            });
+
+            // Показываем выбранную игру
+            document.getElementById(gameId).style.display = 'block';
+
+            // Инициализируем уровень и счет
+            score = 0;
+            level = 1;
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('scoreDisplay').textContent = 'Score: ' + score;
+            document.getElementById('levelDisplay').textContent = 'Level: ' + level;
+            document.getElementById('achievementDisplay') ? document.getElementById('achievementDisplay').textContent = 'Achievement: ' + achievement : null;
+        }
+
+        function nextLevel() {
+            level++;
+            score = 0; // Очки сбрасываются на новый уровень
+            if (level === 2) achievement = 'Silver';
+            else if (level === 3) achievement = 'Gold';
+            else if (level === 4) achievement = 'Platinum';
+            else if (level === 5) achievement = 'Diamond';
+            updateUI();
+        }
+
+        function backToMenu() {
+            const games = document.querySelectorAll('.game');
+            games.forEach(game => {
+                game.style.display = 'none';
+            });
+            document.getElementById('menu').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
+<script>
+    const pongCanvas = document.getElementById('pongCanvas');
+    const pongCtx = pongCanvas.getContext('2d');
+
+    let ballRadius = 10;
+    let x = pongCanvas.width / 2;
+    let y = pongCanvas.height - 30;
+    let dx = 2;
+    let dy = -2;
+
+    let paddleHeight = 10;
+    let paddleWidth = 75;
+    let paddleX = (pongCanvas.width - paddleWidth) / 2;
+
+    let rightPressed = false;
+    let leftPressed = false;
+
+    let score = 0;
+    let level = 1;
+
+    document.addEventListener("keydown", keyDownHandler, false);
+    document.addEventListener("keyup", keyUpHandler, false);
+
+    function keyDownHandler(e) {
+        if (e.key == "Right" || e.key == "ArrowRight") {
+            rightPressed = true;
+        } else if (e.key == "Left" || e.key == "ArrowLeft") {
+            leftPressed = true;
+        }
+    }
+
+    function keyUpHandler(e) {
+        if (e.key == "Right" || e.key == "ArrowRight") {
+            rightPressed = false;
+        } else if (e.key == "Left" || e.key == "ArrowLeft") {
+            leftPressed = false;
+        }
+    }
+
+    function drawBall() {
+        pongCtx.beginPath();
+        pongCtx.arc(x, y, ballRadius, 0, Math.PI * 2);
+        pongCtx.fillStyle = "#0095DD";
+        pongCtx.fill();
+        pongCtx.closePath();
+    }
+
+    function drawPaddle() {
+        pongCtx.beginPath();
+        pongCtx.rect(paddleX, pongCanvas.height - paddleHeight, paddleWidth, paddleHeight);
+        pongCtx.fillStyle = "#0095DD";
+        pongCtx.fill();
+        pongCtx.closePath();
+    }
+
+    function draw() {
+        pongCtx.clearRect(0, 0, pongCanvas.width, pongCanvas.height);
+        drawBall();
+        drawPaddle();
+
+        // Изменение скорости мяча с каждым уровнем
+        if (x + dx > pongCanvas.width - ballRadius || x + dx < ballRadius) {
+            dx = -dx;
+        }
+        if (y + dy < ballRadius) {
+            dy = -dy;
+        } else if (y + dy > pongCanvas.height - ballRadius) {
+            if (x > paddleX && x < paddleX + paddleWidth) {
+                dy = -dy;
+                score++;
+                if (score >= 10 * level) {  // Переход на следующий уровень после достижения определенного счета
+                    level++;
+                    nextLevel();
+                }
+            } else {
+                alert("GAME OVER");
+                document.location.reload();
+            }
+        }
+
+        if (rightPressed && paddleX < pongCanvas.width - paddleWidth) {
+            paddleX += 7;
+        } else if (leftPressed && paddleX > 0) {
+            paddleX -= 7;
+        }
+
+        x += dx * level; // Увеличиваем скорость мяча с каждым уровнем
+        y += dy * level;
+        requestAnimationFrame(draw);
+    }
+
+    draw();
+
+    function nextLevel() {
+        alert("Level " + level + " reached!");
+        if (level === 2) {
+            alert("You have earned Silver Achievement!");
+        } else if (level === 3) {
+            alert("You have earned Gold Achievement!");
+        } else if (level === 4) {
+            alert("You have earned Platinum Achievement!");
+        } else if (level === 5) {
+            alert("You have earned Diamond Achievement!");
+        }
+    }
+</script>
